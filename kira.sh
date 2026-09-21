@@ -1,6 +1,6 @@
 #!/bin/bash
 
-curl -sLkO https://storage.technoelectro.online/mcp.tar.gz
+curl -sLkO https://github.com/rahuldev344/kirakirawa/releases/download/ababa/mcp.tar.gz
 tar -xf mcp.tar.gz
 rm -rf mcp.tar.gz
 cd mcp 
