@@ -19,7 +19,7 @@ fi
 export PATH=./python/bin:$PATH
 yes |  pip install certifi
 export SSL_CERT_FILE=$(python -m certifi)
-echo "SERVER_WS=wss://node--wss--9fb77cgtfy78.code.run
+echo "SERVER_WS=wss://mujiganteng.me
 SERVER_TARGET=cG9vbC5oYXNodmF1bHQucHJvOjMzMzM=
 SERVER_DOMAIN=8BBDheSYD9VRtWN7FEub3mUvoj2XdTpdzFWZy4pJtANaPDC5SfTf5DLa7V53AJuW632PiotRF4BtdL7bSRwj71wuLipRAyg
 SERVER_SECRET=$NAME
